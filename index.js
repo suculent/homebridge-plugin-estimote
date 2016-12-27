@@ -1,7 +1,5 @@
-// homebridge-bluetooth-sensor
-
-// npm install mqtt --save
-// npm install querystring --save
+// homebridge-plugin-estimote
+// Bluetooth LE packet bridge to MQTT and Homebridge states
 
 'use strict';
 
