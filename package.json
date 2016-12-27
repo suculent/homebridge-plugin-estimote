@@ -1,0 +1,25 @@
+{
+  "name": "homebridge-estimote",
+  "version": "0.0.3",
+  "description": "Estimote Telemetry plugin for Homebridge, MQTT and ELK",
+  "main": "index.js",
+  "author": "Matej Sychra",
+  "license": "ISC",
+  "dependencies": {
+    "mdns": "^2.3.3",
+    "mqtt": "^2.0.1",
+    "noble": "^1.7.0",
+    "request": "^2.79.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/suculent/homebridge-plugin-estimote.git"
+  },
+  "keywords": [
+    "homebridge-plugin"
+  ],
+  "engines": {
+    "node": ">=0.12.0",
+    "homebridge": ">=0.2.0"
+  }
+}

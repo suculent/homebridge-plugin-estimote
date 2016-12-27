@@ -1,0 +1,18 @@
+{
+  "bridge" : {
+    "name" : "Homebridge",
+    "username" : "CC:22:3D:E3:CE:32",
+    "port" : 51826,
+    "pin" : "031-45-155"
+  },
+  "accessories" : [
+    {
+      "accessory" : "Estimote",
+      "name" : "Estimote",
+      "description" : "Estimote Telemetry",
+      "elasticsearch" : "http://mini.local:9200",
+      "mqtt_broker" : "mqtt://192.168.1.21",
+      "mqtt_channel " : "/dimmer"
+    }
+  ]
+}
