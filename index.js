@@ -42,11 +42,13 @@ class EstimotePlugin {
     this.mqtt_channel = config.mqtt_channel || mqtt_channel
 
     // Temperature, Light, Barometric Pressure, Battery Level, optionally 4xGPIO
-    this.temperature = 0 // celsius
-    this.light = 0 // lux
-    this.pressure = 0 // bar
-    this.battery = 0 // level
-    this.state = 0 // default pin state
+    this.temperature = [] // celsius
+    this.light = [] // lux
+    this.pressure = [] // bar
+    this.battery = [] // level
+    this.state = [] // default pin state    
+    
+    // GPIO pins, should be implicitly added to each beacon representation
     this.pins = {
       "GPIO 1": 0,
       "GPIO 2": 1,
@@ -54,10 +56,12 @@ class EstimotePlugin {
       "GPIO 4": 3
     };
 
+
     this.pin2contact = {};
     this.contacts = [];
     this.devices = [];
 
+    // This adds GPIO pins as a HomeKit Service (TODO: respect beacon identifier)
     for (let name of Object.keys(this.pins)) {
       this.log('Configuring ContactSensor characteristic for ' + name)
       const pin = this.pins[name];      
@@ -72,6 +76,27 @@ class EstimotePlugin {
       this.contacts.push(contact);
     }
 
+
+	// Known beacon representations, should be configurable using Homekit's config.json.
+    // Expected format:
+	// {
+	//   "accessory" : "Estimote",
+	//   "name" : "Estimote BLE",
+	//   "description" : "Estimote Telemetry",
+	//   "elasticsearch" : "http://mini.local:9200",
+	//   "mqtt_broker" : "mqtt://192.168.1.21",
+	//   "mqtt_channel" : "/ble",
+	//   "mapping" :  {
+	//   	"shortIdentifierA" : "Kitchen",
+	//   	"shortIdentifierB" : "Fridge",
+	//   	"shortIdentifierC" : "Granary"
+	//   }
+	// }
+
+	// Stores mapping for relationship shortIdentifier->Human Readable Name
+    this.beacons = {} || config.mapping;
+
+
     this.log("Estimote MQTT connecting to: " + this.broker_address)
     mqttClient = mqtt.connect(this.broker_address)
 
@@ -82,16 +107,13 @@ class EstimotePlugin {
       that.log("message: " + message.toString())    
       /*
       var pin = 0
-      Set incoming Homebridge sensor states here (sensor types must be defined first)
-      // Temperature, Light, Barometric Pressure, Battery Level, optionally 4xGPIO
-      if (topic == (mqtt_channel + "/open")) {
-        this.state = true;
+      if (topic == (mqtt_channel + "/set")) {
+        // TODO: optional setter for 4xGPIO
         const contact = that.pin2contact[pin];
         if (!contact) throw new Error(`received pin event for unconfigured pin: ${pin}`);
         contact
         .getCharacteristic(Characteristic.ContactSensorState)
         .setValue(this.state);
-
         console.log("[processing] " + mqtt_channel + " is open.")
       }
       */
@@ -130,24 +152,30 @@ class EstimotePlugin {
         }).data;
         var telemetryPacket = that.parseEstimoteTelemetryPacket(data);
         if (telemetryPacket) { 
-          that.log("Noble: Telemetry packet received: "+telemetryPacket);
+
+          var deviceIdentifier = telemetryPacket.shortIdentifier
 
           if (telemetryPacket.temperature) {
-            this.temperature = telemetryPacket.temperature
+            that.temperature[deviceIdentifier] = telemetryPacket.temperature
           }
 
-          /* TODO: extract values for:
-              this.temperature = 0 // celsius
-              this.light = 0 // lux
-              this.pressure = 0 // bar
-              this.battery = 0 // level
-              this.pins = {
-                "GPIO 1": 0,
-                "GPIO 2": 1,
-                "GPIO 3": 2,
-                "GPIO 4": 3
-              };
-              */
+          if (telemetryPacket.light) {
+            that.light[deviceIdentifier] = telemetryPacket.light
+          }
+
+          if (telemetryPacket.pressure) {
+            that.pressure[deviceIdentifier] = telemetryPacket.pressure
+          }
+
+          if (telemetryPacket.battery) {
+            that.battery[deviceIdentifier] = telemetryPacket.battery
+          }
+
+          if (telemetryPacket.pins) {
+            that.pins[deviceIdentifier] = telemetryPacket.pins
+          }
+
+          that.log("Noble: Telemetry packet received: "+telemetryPacket);
 
           if (mqttClient) {
             mqttClient.publish("/ble", JSON.stringify(telemetryPacket));
@@ -191,22 +219,22 @@ class EstimotePlugin {
   }
 
   getTemperature(callback) {
-    this.log('getTemperature callback(null, ' + this.temperature + ')');
-    callback(null, this.temperature);    
+    this.log('getTemperature callback(null, ' + this.temperature[0] + ')');
+    callback(null, this.temperature[0]);    
   }
 
   getBatteryLevel(callback) {
-    this.log('getBatteryLevel callback(null, ' + this.battery + ')');
+    this.log('getBatteryLevel callback(null, ' + this.battery[0] + ')');
     callback(null, this.battery);    
   }
 
   getLightLevel(callback) {
-    this.log('getLightLevel callback(null, ' + this.light + ')');
+    this.log('getLightLevel callback(null, ' + this.light[0] + ')');
     callback(null, this.light);    
   }
 
   getPressure(callback) {
-    this.log('getPressure callback(null, ' + this.pressure + ')');
+    this.log('getPressure callback(null, ' + this.pressure[0] + ')');
     callback(null, this.pressure);    
   }
 
