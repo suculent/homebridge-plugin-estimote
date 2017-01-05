@@ -98,7 +98,7 @@ class EstimotePlugin {
 
 
     this.log("Estimote MQTT connecting to: " + this.broker_address)
-    mqttClient = mqtt.connect(this.broker_address)
+    mqttClient = mqtt.connect(this.broker_address)    
 
     var that = this
 
@@ -150,13 +150,18 @@ class EstimotePlugin {
         var data = peripheral.advertisement.serviceData.find(function(el) {
           return el.uuid == ESTIMOTE_SERVICE_UUID;
         }).data;
+
         var telemetryPacket = that.parseEstimoteTelemetryPacket(data);
         if (telemetryPacket) { 
 
           var deviceIdentifier = telemetryPacket.shortIdentifier
 
+          that.log("Evaluating telemetry packet for device ", deviceIdentifier)
+
           if (telemetryPacket.temperature) {
             that.temperature[deviceIdentifier] = telemetryPacket.temperature
+            that.log(that.temperature[deviceIdentifier]);
+            that.log(that.temperature.toString());
           }
 
           if (telemetryPacket.light) {
