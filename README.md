@@ -1,5 +1,7 @@
 ## Purpose
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/suculent/homebridge-plugin-estimote.svg)](https://greenkeeper.io/)
+
 This is a plugin for Estimote Beacons with Homebridge integration, that sends received Bluetooth Telemetry Packets to MQTT and ELK.
 
 ## Requirements
